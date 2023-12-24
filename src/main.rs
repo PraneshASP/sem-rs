@@ -1,9 +1,9 @@
 use colored::*;
-use sem::expense::Expense;
+use sem::{expense::Expense, stats::generate_stats};
 use std::{io, process};
 
 fn main() {
-    // simple Expense manager
+    // Simple Expense manager
     println!(
         "{}",
         "
@@ -20,10 +20,10 @@ fn main() {
 
     loop {
         println!();
-        // Display Options
         println!("ℹ️ {}", "Please select an option:".bright_blue().bold());
         println!("1. Add Expense");
-        println!("2. Exit");
+        println!("2. Stats");
+        println!("3. Exit");
 
         // Handle User Input
         let mut choice = String::new();
@@ -39,9 +39,9 @@ fn main() {
                         println!("{}", e);
                     }
                 }
-                // Implement the functionality to add an expense
             }
-            "2" => {
+            "2" => generate_stats(),
+            "3" => {
                 println!("Goodbye 👋 👋");
                 process::exit(0);
             }

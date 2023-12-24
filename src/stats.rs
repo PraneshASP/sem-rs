@@ -1,6 +1,7 @@
 use crate::expense::Expense;
+use crate::utils::read_expenses_from_csv;
 use chrono::NaiveDate;
-use colored::*;
+use comfy_table::{presets::UTF8_FULL, Attribute, Cell, Color, Row, Table};
 use std::collections::{BTreeMap, HashMap};
 use std::io;
 
@@ -42,54 +43,75 @@ fn prepare_spending_data(
 
 fn display_spending_by_category_table(expenses: &[Expense]) {
     let (data, total_per_month, total_per_category) = prepare_spending_data(expenses);
-    println!();
 
-    // Print table header with months
-    print!("{:<15}", "Category".bold().yellow());
+    let mut table = Table::new();
+    table
+        .load_preset(UTF8_FULL)
+        .set_content_arrangement(comfy_table::ContentArrangement::Dynamic);
+
+    // Header Row
+    let mut header = Row::new();
+    header.add_cell(
+        Cell::new("Category")
+            .add_attribute(Attribute::Bold)
+            .fg(Color::Yellow),
+    );
     for month in total_per_month.keys() {
-        print!("{:>10}", month);
+        header.add_cell(Cell::new(month));
     }
-    println!("{:>10}", "Total".blue());
+    header.add_cell(
+        Cell::new("Total")
+            .add_attribute(Attribute::Bold)
+            .fg(Color::Blue),
+    );
+    table.set_header(header);
 
-    println!("{}", "-".repeat(15 + 10 * (total_per_month.len() + 1)));
-
-    // Print each category and its monthly totals
+    // Data Rows
     for (category, monthly_totals) in &data {
-        print!("{:<15}", category.yellow());
+        let mut row = Row::new();
+        row.add_cell(Cell::new(category).fg(Color::Yellow));
         let mut total_for_category = 0.0;
         for month in total_per_month.keys() {
             let amount = monthly_totals.get(month).unwrap_or(&0.0);
             total_for_category += amount;
             let amount_color = if *amount < 6000.0 {
-                amount.to_string().green()
+                Color::Green
             } else {
-                amount.to_string().red()
+                Color::Red
             };
 
-            print!("{:>10}", amount_color);
+            row.add_cell(Cell::new(&format!("{:.2}", amount)).fg(amount_color));
         }
-        println!("{:>10.10}", total_for_category.to_string().cyan());
+        row.add_cell(Cell::new(&format!("{:.2}", total_for_category)).fg(Color::Cyan));
+        table.add_row(row);
     }
 
-    // Print the final row with totals for each month
-    print!("{:<15}", "Total");
+    // Footer Row for Totals
+    let mut footer = Row::new();
+    footer.add_cell(Cell::new("Total").add_attribute(Attribute::Bold));
     let mut grand_total = 0.0;
     for total in total_per_month.values() {
         grand_total += total;
-        print!("{:>10}", total.to_string().cyan());
+        footer.add_cell(Cell::new(&format!("{:.2}", total)).fg(Color::Cyan));
     }
-    println!("{:>10}", grand_total.to_string().bold().bright_cyan());
-    println!();
+    footer.add_cell(
+        Cell::new(&format!("{:.2}", grand_total))
+            .add_attribute(Attribute::Bold)
+            .fg(Color::DarkCyan),
+    );
+    table.add_row(footer);
+
+    println!("{}", table);
 }
 
-pub fn generate_stats(expenses: &[Expense]) {
+pub fn generate_stats() {
+    let expenses: &[Expense] = &read_expenses_from_csv("expenses.csv").unwrap();
     println!("Available commands: total, summary");
     let mut command = String::new();
     io::stdin().read_line(&mut command).unwrap();
 
     match command.trim() {
         "total" => println!("Total expenses: {:.2}", calculate_total_expenses(expenses)),
-
         "summary" => display_spending_by_category_table(&expenses),
         _ => println!("Unknown command"),
     }

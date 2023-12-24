@@ -3,10 +3,10 @@ use serde::{Deserialize, Serialize};
 use strum_macros::{AsRefStr, Display, EnumIter, EnumString};
 
 use chrono::Local;
-use dialoguer::{Confirm, FuzzySelect, Input, Select};
+use dialoguer::{Confirm, FuzzySelect, Input};
 use strum::IntoEnumIterator;
 
-use csv::{Writer, WriterBuilder};
+use csv::WriterBuilder;
 use std::error::Error;
 use std::{fs::OpenOptions, path::Path};
 
