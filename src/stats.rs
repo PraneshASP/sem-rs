@@ -1,7 +1,10 @@
 use crate::expense::Expense;
-use crate::utils::read_expenses_from_csv;
+use crate::utils::{format_inr, month_to_name, read_expenses_from_csv};
 use chrono::NaiveDate;
-use comfy_table::{presets::UTF8_FULL, Attribute, Cell, Color, Row, Table};
+use comfy_table::Attribute::Bold;
+use comfy_table::ContentArrangement;
+use comfy_table::{presets::UTF8_FULL, Cell, Color, Row, Table};
+
 use std::collections::{BTreeMap, HashMap};
 use std::io;
 
@@ -51,19 +54,13 @@ fn display_spending_by_category_table(expenses: &[Expense]) {
 
     // Header Row
     let mut header = Row::new();
-    header.add_cell(
-        Cell::new("Category")
-            .add_attribute(Attribute::Bold)
-            .fg(Color::Yellow),
-    );
+    header.add_cell(Cell::new("Category").add_attribute(Bold).fg(Color::Yellow));
     for month in total_per_month.keys() {
-        header.add_cell(Cell::new(month));
+        // Convert month number to month name
+        let month_name = month_to_name(month);
+        header.add_cell(Cell::new(&month_name).add_attribute(Bold));
     }
-    header.add_cell(
-        Cell::new("Total")
-            .add_attribute(Attribute::Bold)
-            .fg(Color::Blue),
-    );
+    header.add_cell(Cell::new("Total").add_attribute(Bold).fg(Color::Blue));
     table.set_header(header);
 
     // Data Rows
@@ -80,27 +77,56 @@ fn display_spending_by_category_table(expenses: &[Expense]) {
                 Color::Red
             };
 
-            row.add_cell(Cell::new(&format!("{:.2}", amount)).fg(amount_color));
+            row.add_cell(Cell::new(&format_inr(*amount)).fg(amount_color));
         }
-        row.add_cell(Cell::new(&format!("{:.2}", total_for_category)).fg(Color::Cyan));
+        row.add_cell(Cell::new(format_inr(total_for_category)).fg(Color::Cyan));
         table.add_row(row);
     }
 
     // Footer Row for Totals
     let mut footer = Row::new();
-    footer.add_cell(Cell::new("Total").add_attribute(Attribute::Bold));
+    footer.add_cell(Cell::new("Total").add_attribute(Bold));
     let mut grand_total = 0.0;
     for total in total_per_month.values() {
         grand_total += total;
-        footer.add_cell(Cell::new(&format!("{:.2}", total)).fg(Color::Cyan));
+        footer.add_cell(Cell::new(format_inr(total.clone())).fg(Color::Cyan));
     }
     footer.add_cell(
-        Cell::new(&format!("{:.2}", grand_total))
-            .add_attribute(Attribute::Bold)
+        Cell::new(format_inr(grand_total))
+            .add_attribute(Bold)
             .fg(Color::DarkCyan),
     );
     table.add_row(footer);
 
+    println!("{}", table);
+}
+
+pub fn recent_transactions() {
+    let expenses: &[Expense] = &read_expenses_from_csv("expenses.csv").unwrap();
+    let mut table = Table::new();
+    table
+        .load_preset(UTF8_FULL)
+        .set_content_arrangement(ContentArrangement::Dynamic);
+
+    // Add the table headers
+    table.set_header(vec![
+        Cell::new("Date").add_attribute(Bold),
+        Cell::new("Amount").add_attribute(Bold),
+        Cell::new("Category").add_attribute(Bold),
+        Cell::new("Notes").add_attribute(Bold),
+    ]);
+
+    // Add the last five transactions to the table
+    for expense in expenses.iter().rev().take(5) {
+        table.add_row(Row::from(vec![
+            Cell::new(&expense.date),
+            Cell::new(format_inr(expense.amount)),
+            Cell::new(&expense.category),
+            Cell::new(&expense.notes),
+        ]));
+    }
+
+    // Print the table
     println!("{}", table);
 }
 

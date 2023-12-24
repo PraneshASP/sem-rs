@@ -464,6 +464,7 @@ dependencies = [
  "chrono",
  "colored",
  "comfy-table",
+ "console",
  "csv",
  "dialoguer",
  "rand",

@@ -1,8 +1,13 @@
 use colored::*;
-use sem::{expense::Expense, stats::generate_stats};
+use sem::{
+    expense::Expense,
+    stats::{generate_stats, recent_transactions},
+    utils::clear_console,
+};
 use std::{io, process};
-
 fn main() {
+    clear_console();
+
     // Simple Expense manager
     println!(
         "{}",
@@ -17,10 +22,12 @@ fn main() {
     );
 
     println!();
-
+    println!("Recent transactions");
+    recent_transactions();
+    println!();
     loop {
         println!();
-        println!("ℹ️ {}", "Please select an option:".bright_blue().bold());
+        println!("ℹ️  {}", "Please select an option:".bright_blue().bold());
         println!("1. Add Expense");
         println!("2. Stats");
         println!("3. Exit");
