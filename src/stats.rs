@@ -104,7 +104,7 @@ fn display_spending_by_category_table(expenses: &[Expense]) {
 }
 
 pub fn recent_transactions() {
-    let expenses: &[Expense] = &read_expenses_from_csv("expenses.csv").unwrap();
+    let expenses: &[Expense] = &read_expenses_from_csv(".data/expenses.csv").unwrap();
     let mut table = Table::new();
     table
         .load_preset(UTF8_FULL)
@@ -214,7 +214,7 @@ fn display_transactions_for_date(expenses: &[Expense], date: &str) {
 
 // Calculate the start and end dates of the week within the given month
 fn get_week_date_range(year: i32, month: u32, week: u32) -> Option<(NaiveDate, NaiveDate)> {
-    let first_of_month = NaiveDate::from_ymd(year, month, 1);
+    let first_of_month = NaiveDate::from_ymd_opt(year, month, 1)?;
 
     // Find the first Monday of the month or the 1st if it's a Monday
     let first_monday = if first_of_month.weekday() == Weekday::Mon {
@@ -292,7 +292,7 @@ fn calculate_weekly_total(expenses: &[Expense], week_input: &str) {
 }
 
 pub fn generate_stats() {
-    let expenses: &[Expense] = &read_expenses_from_csv("expenses.csv").unwrap();
+    let expenses: &[Expense] = &read_expenses_from_csv(".data/expenses.csv").unwrap();
     println!("Available commands: total, summary, analyze");
     let mut command = String::new();
     io::stdin().read_line(&mut command).unwrap();
