@@ -1,10 +1,26 @@
-use colored::*;
+use clap::{Parser, Subcommand};
+use colored::Colorize;
 use sem::{
     expense::Expense,
     stats::{generate_stats, recent_transactions},
     utils::{clear_console, init_source_file, source_file_path},
 };
-use std::{io, process};
+
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    // Adds new expense
+    NEW,
+    // Display stats
+    STATS,
+}
+
 fn main() {
     clear_console();
 
@@ -12,12 +28,12 @@ fn main() {
     println!(
         "{}",
         "
-        ███████╗███████╗███╗   ███╗
-        ██╔════╝██╔════╝████╗ ████║
-        ███████╗█████╗  ██╔████╔██║
-        ╚════██║██╔══╝  ██║╚██╔╝██║
-        ███████║███████╗██║ ╚═╝ ██║
-        ╚══════╝╚══════╝╚═╝     ╚═╝"
+            ███████╗███████╗███╗   ███╗
+            ██╔════╝██╔════╝████╗ ████║
+            ███████╗█████╗  ██╔████╔██║
+            ╚════██║██╔══╝  ██║╚██╔╝██║
+            ███████║███████╗██║ ╚═╝ ██║
+            ╚══════╝╚══════╝╚═╝     ╚═╝"
             .bright_magenta()
     );
 
@@ -27,34 +43,23 @@ fn main() {
     recent_transactions();
     println!();
 
-    loop {
-        println!();
-        println!("ℹ️  {}", "Please select an option:".bright_blue().bold());
-        println!("1. Add Expense");
-        println!("2. Stats");
-        println!("3. Exit");
+    let cli = Cli::parse();
 
-        // Handle User Input
-        let mut choice = String::new();
-        io::stdin().read_line(&mut choice).unwrap();
-        match choice.trim() {
-            "1" => {
-                match Expense::new() {
-                    Ok(expense) => {
-                        println!("Expense added {:#?}", expense);
-                    }
-                    Err(e) => {
-                        // Handle the error case
-                        println!("{}", e);
-                    }
+    // You can check for the existence of subcommands, and if found use their
+    // matches just as you would the top level cmd
+    match &cli.command {
+        Some(Commands::NEW) => {
+            match Expense::new() {
+                Ok(expense) => {
+                    println!("Expense added {:#?}", expense);
+                }
+                Err(e) => {
+                    // Handle the error case
+                    println!("{}", e);
                 }
             }
-            "2" => generate_stats(),
-            "3" => {
-                println!("Goodbye 👋 👋");
-                process::exit(0);
-            }
-            _ => println!("Invalid option, please try again."),
         }
+        Some(Commands::STATS) => generate_stats(),
+        None => {}
     }
 }
