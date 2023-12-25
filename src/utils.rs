@@ -1,28 +1,29 @@
 use crate::expense::Expense;
-use chrono::NaiveDate;
+use chrono::{NaiveDate, Utc};
 use console::Term;
-use csv::Reader;
-use csv::WriterBuilder;
-use std::env;
+use csv::{Reader, WriterBuilder};
+use directories::ProjectDirs;
 use std::error::Error;
-use std::fs::File;
-use std::fs::{self};
+use std::fs::{self, File};
+use std::io::Write;
+use std::path::PathBuf;
 
-pub fn read_expenses_from_csv(file_path: &str) -> Result<Vec<Expense>, Box<dyn Error>> {
+pub fn read_expenses_from_csv(file_path: PathBuf) -> Result<Vec<Expense>, Box<dyn Error>> {
     let file = File::open(file_path)?;
     let mut rdr = Reader::from_reader(file);
     let mut expenses = Vec::new();
-
     for result in rdr.deserialize() {
-        let record: Expense = result?;
-        expenses.push(record);
+        match result {
+            Ok(record) => expenses.push(record),
+            Err(e) => eprintln!("Error reading CSV record: {}", e),
+        }
     }
 
     Ok(expenses)
 }
 
 pub fn write_transactions_to_csv(transactions: &[Expense]) -> Result<(), csv::Error> {
-    let file = File::create("expenses.csv")?;
+    let file = File::create(source_file_path())?;
     let mut wtr = WriterBuilder::new().from_writer(file);
 
     for transaction in transactions {
@@ -68,4 +69,25 @@ pub fn clear_console() {
     let term = Term::stdout();
     term.clear_screen()
         .unwrap_or_else(|e| eprintln!("Failed to clear screen: {}", e));
+}
+
+pub fn source_file_path() -> PathBuf {
+    let current_year = Utc::now().format("%Y").to_string();
+    let filename = format!("expenses-{}.csv", current_year);
+
+    let project_dirs = ProjectDirs::from("", "", "sem-rs").expect("Cannot find home directory");
+    project_dirs.data_local_dir().join(filename)
+}
+
+pub fn init_source_file(file_path: &PathBuf) {
+    let dir = file_path.parent().expect("Failed to find parent directory");
+
+    if !dir.exists() {
+        fs::create_dir_all(dir).expect("Failed to create directory");
+    }
+
+    if !file_path.exists() {
+        let mut file = File::create(file_path).expect("Failed to create file");
+        writeln!(file, "date,amount,category,notes").expect("Failed to write headers");
+    }
 }

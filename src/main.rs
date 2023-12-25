@@ -2,7 +2,7 @@ use colored::*;
 use sem::{
     expense::Expense,
     stats::{generate_stats, recent_transactions},
-    utils::clear_console,
+    utils::{clear_console, init_source_file, source_file_path},
 };
 use std::{io, process};
 fn main() {
@@ -21,10 +21,12 @@ fn main() {
             .bright_magenta()
     );
 
+    init_source_file(&source_file_path());
     println!();
     println!("Recent transactions");
     recent_transactions();
     println!();
+
     loop {
         println!();
         println!("ℹ️  {}", "Please select an option:".bright_blue().bold());

@@ -10,6 +10,8 @@ use csv::WriterBuilder;
 use std::error::Error;
 use std::{fs::OpenOptions, path::Path};
 
+use crate::utils::source_file_path;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Expense {
     pub date: String,
@@ -72,8 +74,8 @@ impl Expense {
             .interact()
             .unwrap()
         {
-            let file_path = ".data/expenses.csv";
-            let file_exists = Path::new(file_path).exists();
+            let file_path = source_file_path();
+            let file_exists = Path::new(&file_path).exists();
 
             let file = OpenOptions::new()
                 .write(true)
