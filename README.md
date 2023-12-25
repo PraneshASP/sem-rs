@@ -42,7 +42,7 @@ cargo build --release
 - **Organization:** Expenses are categorized and stored yearly.
 
 ## Sneak Peek:
-<details>
+<details open>
   <summary><b>Adding new expense</b></summary>
 
 ![](./assets/sem-new.gif)
