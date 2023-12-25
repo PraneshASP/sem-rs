@@ -1,12 +1,10 @@
 use crate::expense::Expense;
-use crate::utils::{format_inr, month_to_name, read_expenses_from_csv};
+use crate::utils::{format_inr, month_to_name, read_expenses_from_csv, source_file_path};
 use chrono::{Datelike, Duration, NaiveDate, Weekday};
-use comfy_table::Attribute::Bold;
-use comfy_table::ContentArrangement;
-use comfy_table::{presets::UTF8_FULL, Cell, Color, Row, Table};
-use dialoguer::theme::ColorfulTheme;
-use dialoguer::Input;
-
+use comfy_table::{
+    presets::UTF8_FULL, Attribute::Bold, Cell, Color, ContentArrangement, Row, Table,
+};
+use dialoguer::{theme::ColorfulTheme, Input};
 use std::collections::{BTreeMap, HashMap};
 use std::io;
 
@@ -104,7 +102,7 @@ fn display_spending_by_category_table(expenses: &[Expense]) {
 }
 
 pub fn recent_transactions() {
-    let expenses: &[Expense] = &read_expenses_from_csv(".data/expenses.csv").unwrap();
+    let expenses: &[Expense] = &read_expenses_from_csv(source_file_path()).unwrap();
     let mut table = Table::new();
     table
         .load_preset(UTF8_FULL)
@@ -292,7 +290,7 @@ fn calculate_weekly_total(expenses: &[Expense], week_input: &str) {
 }
 
 pub fn generate_stats() {
-    let expenses: &[Expense] = &read_expenses_from_csv(".data/expenses.csv").unwrap();
+    let expenses: &[Expense] = &read_expenses_from_csv(source_file_path()).unwrap();
     println!("Available commands: total, summary, analyze");
     let mut command = String::new();
     io::stdin().read_line(&mut command).unwrap();
