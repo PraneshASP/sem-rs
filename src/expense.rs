@@ -10,9 +10,7 @@ use csv::WriterBuilder;
 use std::error::Error;
 use std::{fs::OpenOptions, path::Path};
 
-use chrono::{Duration, NaiveDate};
-use rand::distributions::Uniform;
-use rand::{thread_rng, Rng};
+use crate::utils::source_file_path;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Expense {
@@ -76,8 +74,8 @@ impl Expense {
             .interact()
             .unwrap()
         {
-            let file_path = "expenses.csv";
-            let file_exists = Path::new(file_path).exists();
+            let file_path = source_file_path();
+            let file_exists = Path::new(&file_path).exists();
 
             let file = OpenOptions::new()
                 .write(true)
@@ -100,36 +98,5 @@ impl Expense {
         } else {
             return Err("Expense not saved".into());
         }
-    }
-
-    pub fn generate_transactions() -> Vec<Expense> {
-        let mut rng = thread_rng();
-        let categories = vec![
-            "Food",
-            "Transport",
-            "Housing",
-            "Utilities",
-            "Entertainment",
-            "Misc",
-        ];
-        let date_range = Uniform::new(0, 212);
-        let mut expenses = Vec::new();
-
-        for _ in 0..1000 {
-            let random_days = rng.sample(date_range);
-            let random_date = NaiveDate::from_ymd(2023, 1, 1) + Duration::days(random_days.into());
-            let random_category = categories[rng.gen_range(0..categories.len())];
-            let random_amount = rng.gen_range(10.0..500.0);
-            let random_notes = "Generated Note";
-
-            expenses.push(Expense {
-                date: random_date.format("%Y-%m-%d").to_string(),
-                amount: random_amount,
-                category: random_category.to_string(),
-                notes: random_notes.to_string(),
-            });
-        }
-
-        expenses
     }
 }
