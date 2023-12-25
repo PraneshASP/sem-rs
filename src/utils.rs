@@ -1,11 +1,12 @@
 use crate::expense::Expense;
 use chrono::NaiveDate;
-use colored::Colorize;
 use console::Term;
 use csv::Reader;
-use csv::{Writer, WriterBuilder};
+use csv::WriterBuilder;
+use std::env;
 use std::error::Error;
 use std::fs::File;
+use std::fs::{self};
 
 pub fn read_expenses_from_csv(file_path: &str) -> Result<Vec<Expense>, Box<dyn Error>> {
     let file = File::open(file_path)?;
