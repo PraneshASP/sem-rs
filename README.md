@@ -42,12 +42,23 @@ cargo build --release
 - **Organization:** Expenses are categorized and stored yearly.
 
 ## Sneak Peek:
-### Adding new expense:
+<details>
+  <summary><b>Adding new expense</b></summary>
 
 ![](./assets/sem-new.gif)
 
-### View Stats (summary):
+</details>
+ 
+<br/>
+
+<details>
+  <summary><b>Stats</b></summary>
+
 ![](./assets/sem-summary.gif)
+
+</details>
+
+<br/>
 
 **Future Plans:**
 - Transition to SQLite for more robust data management.
