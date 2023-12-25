@@ -1,12 +1,13 @@
 use crate::expense::Expense;
 use crate::utils::{format_inr, month_to_name, read_expenses_from_csv, source_file_path};
 use chrono::{Datelike, Duration, NaiveDate, Weekday};
+use colored::Colorize;
 use comfy_table::{
     presets::UTF8_FULL, Attribute::Bold, Cell, Color, ContentArrangement, Row, Table,
 };
+use dialoguer::FuzzySelect;
 use dialoguer::{theme::ColorfulTheme, Input};
 use std::collections::{BTreeMap, HashMap};
-use std::io;
 
 fn calculate_total_expenses(expenses: &[Expense]) -> f32 {
     expenses.iter().map(|e| e.amount).sum()
@@ -167,7 +168,7 @@ fn display_month_breakdown(expenses: &[Expense], month: &str) {
     for &week in weeks {
         let total_amount = expenses_by_week[&week];
         table.add_row(Row::from(vec![
-            Cell::new(format!("Week {}", week)),
+            Cell::new(format!("Week {}", week - 1)),
             Cell::new(format!("{:.2}", total_amount)),
         ]));
     }
@@ -291,16 +292,26 @@ fn calculate_weekly_total(expenses: &[Expense], week_input: &str) {
 
 pub fn generate_stats() {
     let expenses: &[Expense] = &read_expenses_from_csv(source_file_path()).unwrap();
-    println!("Available commands: total, summary, analyze");
-    let mut command = String::new();
-    io::stdin().read_line(&mut command).unwrap();
+    let commands = vec!["Total Expenses", "Summary", "Analyze"];
+    let command = FuzzySelect::with_theme(&ColorfulTheme::default())
+        .with_prompt("Select from list: ")
+        .default(0)
+        .items(&commands)
+        .interact()
+        .unwrap();
 
-    match command.trim() {
-        "total" => println!("Total expenses: {:.2}", calculate_total_expenses(expenses)),
-        "summary" => display_spending_by_category_table(&expenses),
-        "analyze" => {
+    match command {
+        0 => println!(
+            "\nTotal expenses: {:>}\n",
+            format_inr(calculate_total_expenses(expenses))
+                .to_string()
+                .bold()
+        ),
+        1 => display_spending_by_category_table(&expenses),
+        2 => {
             let input: String = Input::with_theme(&ColorfulTheme::default())
                 .with_prompt("Enter the date/week/month to analyze:")
+                .default("2023-05:4".to_string())
                 .interact_text()
                 .unwrap();
 

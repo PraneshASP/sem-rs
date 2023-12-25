@@ -1,23 +1,39 @@
-use colored::*;
+use clap::{Parser, Subcommand};
+use colored::Colorize;
 use sem::{
     expense::Expense,
     stats::{generate_stats, recent_transactions},
-    utils::{clear_console, init_source_file, source_file_path},
+    utils::{init_source_file, source_file_path},
 };
-use std::{io, process};
-fn main() {
-    clear_console();
 
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+#[command(name = "sem")]
+#[command(about = "A simple expense tracker that holds your data locally", long_about = None)]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Add new expense
+    NEW,
+    /// Display stats
+    STATS,
+}
+
+fn main() {
     // Simple Expense manager
     println!(
         "{}",
         "
-        ███████╗███████╗███╗   ███╗
-        ██╔════╝██╔════╝████╗ ████║
-        ███████╗█████╗  ██╔████╔██║
-        ╚════██║██╔══╝  ██║╚██╔╝██║
-        ███████║███████╗██║ ╚═╝ ██║
-        ╚══════╝╚══════╝╚═╝     ╚═╝"
+            ███████╗███████╗███╗   ███╗
+            ██╔════╝██╔════╝████╗ ████║
+            ███████╗█████╗  ██╔████╔██║
+            ╚════██║██╔══╝  ██║╚██╔╝██║
+            ███████║███████╗██║ ╚═╝ ██║
+            ╚══════╝╚══════╝╚═╝     ╚═╝"
             .bright_magenta()
     );
 
@@ -26,35 +42,23 @@ fn main() {
     println!("Recent transactions");
     recent_transactions();
     println!();
+    let cli = Cli::parse();
 
-    loop {
-        println!();
-        println!("ℹ️  {}", "Please select an option:".bright_blue().bold());
-        println!("1. Add Expense");
-        println!("2. Stats");
-        println!("3. Exit");
-
-        // Handle User Input
-        let mut choice = String::new();
-        io::stdin().read_line(&mut choice).unwrap();
-        match choice.trim() {
-            "1" => {
-                match Expense::new() {
-                    Ok(expense) => {
-                        println!("Expense added {:#?}", expense);
-                    }
-                    Err(e) => {
-                        // Handle the error case
-                        println!("{}", e);
-                    }
+    match &cli.command {
+        Some(Commands::NEW) => {
+            match Expense::new() {
+                Ok(expense) => {
+                    println!("✅ Added {:#?}", expense);
+                }
+                Err(e) => {
+                    // Handle the error case
+                    println!("⚠️ {}", e);
                 }
             }
-            "2" => generate_stats(),
-            "3" => {
-                println!("Goodbye 👋 👋");
-                process::exit(0);
-            }
-            _ => println!("Invalid option, please try again."),
+        }
+        Some(Commands::STATS) => generate_stats(),
+        None => {
+            println!("{} {} \n", "⚠️", "Run sem -h for usage information");
         }
     }
 }
